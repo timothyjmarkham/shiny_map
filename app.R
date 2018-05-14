@@ -6,6 +6,11 @@
 #
 #    http://shiny.rstudio.com/
 #
+install.packages('leaflet')
+install.packages('tidyverse')
+install.packages('ggplot2')
+system('sudo apt-get update && apt-get install -y libudunits2-dev libgdal-dev libproj-dev')
+install.packages('tigris') 
 
 library(shiny)
 library(civis)
