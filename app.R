@@ -6,15 +6,15 @@
 #
 #    http://shiny.rstudio.com/
 #
-#install.packages("leaflet")
-#install.packages("tigris")
+install.packages("leaflet")
+devtools::install_github('walkerke/tigris') 
 install.packages("tidyverse")
 install.packages("ggplot2")
 
 library(shiny)
 library(civis)
-#library(leaflet)
-#library(tigris)
+library(leaflet)
+library(tigris)
 library(tidyverse)
 library(ggplot2)
 
