@@ -7,7 +7,8 @@
 #    http://shiny.rstudio.com/
 #
 install.packages("leaflet")
-devtools::install_github('walkerke/tigris') 
+system('sudo apt-get update && apt-get install -y libudunits2-dev libgdal-dev libproj-dev')
+install.packages('tigris') 
 install.packages("tidyverse")
 install.packages("ggplot2")
 
