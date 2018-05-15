@@ -12,6 +12,39 @@ install.packages('ggplot2')
 system('sudo apt-get update && apt-get install -y libudunits2-dev libgdal-dev libproj-dev')
 install.packages('tigris') 
 
+check.vars<-c("avg_coalesced_commercial_age"
+              ,"avg_age_pr_18_34_commercial"
+              ,"avg_race_white_commercial"
+              ,"avg_ts_married"
+              ,"avg_children_in_hh"
+              ,"avg_education_collegegrad"
+              ,"avg_head_hh_salary_amt"
+              ,"avg_travel_domestic_foreign"
+              ,"avg_hh_has_credit_card"
+              ,"avg_online_is_online"
+              ,"avg_foodatlas12_fast_food_restaurants"
+              ,"avg_foodatlas12_full_service_restaurants"
+              ,"avg_last_6_months_dunkin_donuts"
+              ,"avg_last_6_months_mcdonalds"
+              ,"avg_last_6_months_starbucks"
+              ,"total_count"
+              ,"avg_coalesced_commercial_age_index"
+              ,"avg_age_pr_18_34_commercial_index"
+              ,"avg_race_white_commercial_index"
+              ,"avg_ts_married_index"
+              ,"avg_children_in_hh_index"
+              ,"avg_education_collegegrad_index"
+              ,"avg_head_hh_salary_amt_index"
+              ,"avg_travel_domestic_foreign_index"
+              ,"avg_hh_has_credit_card_index"
+              ,"avg_online_is_online_index"
+              ,"avg_foodatlas12_fast_food_restaurants_index"
+              ,"avg_foodatlas12_full_service_restaurants_index"
+              ,"avg_last_6_months_dunkin_donuts_index"
+              ,"avg_last_6_months_mcdonalds_index"
+              ,"avg_last_6_months_starbucks_index"
+              ,"total_count_index")
+              
 library(shiny)
 library(civis)
 library(leaflet)
@@ -32,10 +65,8 @@ cluster.choices <- data.frame(
   var = levels(data$clustername),
   num = 1:length(levels(data$clustername))
 )
-index.choices <- data.frame(
-  var = names(data),
-  num = 1:length(names(data))
-)
+index.choices <- check.vars
+
 
 dunkinIcon <- makeIcon(
   iconUrl = "https://dunkinanytime.coca-cola.com/content/dam/dunkin/logo-favicon/dunkin-donuts-logo.png",
@@ -53,50 +84,57 @@ mcdonaldsIcon <- makeIcon(
   iconAnchorX = 0, iconAnchorY = 0
 )
 
-# List of choices for selectInput
+# List of choices for selectInput and checkboxGroupInput
 cluster.list <- as.vector(cluster.choices$var)
-index.list <- as.vector(index.choices$var)
+index.list <- as.vector(index.choices)
 # Name it
 names(cluster.list) <- cluster.choices$var
 
-# Define UI for application that draws a histogram
+# Define UI for application
 ui <- fluidPage(
    
    # Application title
    titlePanel("Dunkin Retail Map"),
    
-   # Sidebar with a slider input for number of bins 
-   sidebarLayout(
-      sidebarPanel(
-         selectInput("cluster",
+   fluidRow(
+   # Left sidebars 
+   column(2,
+      selectInput("cluster",
                      label = h3("Store Cluster:"),
                      choices = c("All", cluster.list),
                      #selected = NULL,
                      multiple = FALSE)
       ,
-      selectInput("Variable1",
-                  label = h3("First Variable to Display:"),
-                  choices = c(index.list),
-                  #selected = NULL,
-                  multiple = FALSE)
+      sliderInput("mcdonalds_in_one_mile", "Mcdonald's Stores Within One Mile:",
+                  min = 0, max = max(data$mcdonalds_in_one_mile),
+                  value = c(0,max(data$mcdonalds_in_one_mile)))
       ,
-      selectInput("Variable2",
-                  label = h3("Second Variable to Display:"),
-                  choices = c(index.list),
-                  #selected = NULL,
-                  multiple = FALSE)
+      sliderInput("mcdonalds_in_five_miles", "McDonald's Stores Within Five Miles:",
+                  min = 0, max = max(data$mcdonalds_in_five_miles),
+                  value = c(0,max(data$mcdonalds_in_five_miles)))
       ,
-      selectInput("Variable3",
-                  label = h3("Third Variable to Display:"),
-                  choices = c(index.list),
-                  #selected = NULL,
-                  multiple = FALSE)      
-      ),
+      sliderInput("starbucks_in_one_mile", "Starbucks Stores Within One Mile:",
+                  min = 0, max = max(data$starbucks_in_one_mile),
+                  value = c(0,max(data$starbucks_in_one_mile)))
+      ,
+      sliderInput("starbucks_in_five_miles", "Starbucks Stores Within Five Miles:",
+                  min = 0, max = max(data$starbucks_in_five_miles),
+                  value = c(0,max(data$starbucks_in_five_miles)))
+      ,
+      style="height: 1000px; overflow-x: scroll; overflow-y: scroll")
+   ,
       # Show a plot of the generated distribution
-      mainPanel(
+   column(8,
         leafletOutput("map", height="600px"),
-         textOutput("text")
-      )
+         plotOutput("dunkinPlot", height = "400px")
+      ),
+   column(2,
+          checkboxGroupInput("variables",
+                      label = h3("Variables to Display:"),
+                      choices = c(index.list))
+          ,
+          style="height: 1000px; overflow-x: scroll; overflow-y: scroll"
+   )
    )
 )
 
@@ -109,99 +147,246 @@ server <- function(input, output) {
   
     
         
-     us.leaflet<-leaflet() %>% addProviderTiles("CartoDB.Positron") %>% setView(-98.35, 39.7,zoom = 4)
+     us.leaflet<-leaflet() %>% addProviderTiles("CartoDB.Positron") %>% setView(-98.35, 39.7,zoom = 4) %>%
+                addMarkers(lng=starbucks.stores$civis_longitude, lat = starbucks.stores$civis_latitude, icon = starbucksIcon)  %>%
+                addMarkers(lng=mcdonalds.stores$civis_longitude, lat = mcdonalds.stores$civis_latitude, icon = mcdonaldsIcon)
    })
    
    observeEvent(input$cluster,{
+     popup.code<- "paste(sep = '<br/>', paste0('<b>Address: ', x$address, '</b>')"
+     if (length(input$variables)>0){
+       for (i in 1:length(input$variables)){
+         
+         var.code<-paste0("x$", input$variables[i])
+         popup.code<-paste0(popup.code, ",paste0('",input$variables[i], ": ', ", var.code, ")")
+       }
+     }
+     popup.code<- paste0(popup.code, ")")
+     
      if (input$cluster == "All"){
-       x <- data
+       x <- data[input$mcdonalds_in_one_mile[1] <= data$mcdonalds_in_one_mile & input$mcdonalds_in_one_mile[2] >= data$mcdonalds_in_one_mile &
+                 input$mcdonalds_in_five_miles[1] <= data$mcdonalds_in_five_miles & input$mcdonalds_in_five_miles[2] >= data$mcdonalds_in_five_miles &
+                 input$starbucks_in_one_mile[1] <= data$starbucks_in_one_mile & input$starbucks_in_one_mile[2] >= data$starbucks_in_one_mile &
+                 input$starbucks_in_five_miles[1] <= data$starbucks_in_five_miles & input$starbucks_in_five_miles[2] >= data$starbucks_in_five_miles, ]
      } else{
        #hold <- reactive(data[which(data$cluster %in% input$cluster),])
        #x <- hold()
-       x<-data[which(data$clustername %in% input$cluster),]
+       x<-data[data$clustername == input$cluster & input$mcdonalds_in_one_mile[1] <= data$mcdonalds_in_one_mile & input$mcdonalds_in_one_mile[2] >= data$mcdonalds_in_one_mile &
+                 input$mcdonalds_in_five_miles[1] <= data$mcdonalds_in_five_miles & input$mcdonalds_in_five_miles[2] >= data$mcdonalds_in_five_miles &
+                 input$starbucks_in_one_mile[1] <= data$starbucks_in_one_mile & input$starbucks_in_one_mile[2] >= data$starbucks_in_one_mile &
+                 input$starbucks_in_five_miles[1] <= data$starbucks_in_five_miles & input$starbucks_in_five_miles[2] >= data$starbucks_in_five_miles,]
      }
      
      us.leaflet<-leafletProxy("map") %>% addProviderTiles("CartoDB.Positron")  %>% clearMarkers() %>%
        addMarkers(lng=x$civis_longitude, lat = x$civis_latitude, icon = dunkinIcon,
-                  popup = paste(sep = "<br/>",
-                                paste0("<b>Address: ",x$address,"</b>"),
-                                paste0(input$Variable1, ": ",round(x[ , names(x) %in% input$Variable1]*100)),
-                                paste0(input$Variable2, ": ",round(x[ , names(x) %in% input$Variable2]*100)),
-                                paste0(input$Variable3, ": ",round(x[ , names(x) %in% input$Variable3]*100)))) %>%
+                  popup =      eval(parse(text = popup.code))
+                  )%>%
        addMarkers(lng=starbucks.stores$civis_longitude, lat = starbucks.stores$civis_latitude, icon = starbucksIcon)  %>%
        addMarkers(lng=mcdonalds.stores$civis_longitude, lat = mcdonalds.stores$civis_latitude, icon = mcdonaldsIcon)
      print(us.leaflet)
      
    })
 
-   observeEvent(input$Variable1,{
+   observeEvent(input$variables,{
+     popup.code<- "paste(sep = '<br/>', paste0('<b>Address: ', x$address, '</b>')"
+     if (length(input$variables)>0){
+       for (i in 1:length(input$variables)){
+         
+         var.code<-paste0("x$", input$variables[i])
+         popup.code<-paste0(popup.code, ",paste0('",input$variables[i], ": ', ", var.code, ")")
+       }
+     }
+     popup.code<- paste0(popup.code, ")")
      if (input$cluster == "All"){
-       x <- data
+       x <- data[input$mcdonalds_in_one_mile[1] <= data$mcdonalds_in_one_mile & input$mcdonalds_in_one_mile[2] >= data$mcdonalds_in_one_mile &
+                   input$mcdonalds_in_five_miles[1] <= data$mcdonalds_in_five_miles & input$mcdonalds_in_five_miles[2] >= data$mcdonalds_in_five_miles &
+                   input$starbucks_in_one_mile[1] <= data$starbucks_in_one_mile & input$starbucks_in_one_mile[2] >= data$starbucks_in_one_mile &
+                   input$starbucks_in_five_miles[1] <= data$starbucks_in_five_miles & input$starbucks_in_five_miles[2] >= data$starbucks_in_five_miles, ]
      } else{
        #hold <- reactive(data[which(data$cluster %in% input$cluster),])
        #x <- hold()
-       x<-data[which(data$clustername %in% input$cluster),]
+       x<-data[data$clustername == input$cluster & input$mcdonalds_in_one_mile[1] <= data$mcdonalds_in_one_mile & input$mcdonalds_in_one_mile[2] >= data$mcdonalds_in_one_mile &
+                 input$mcdonalds_in_five_miles[1] <= data$mcdonalds_in_five_miles & input$mcdonalds_in_five_miles[2] >= data$mcdonalds_in_five_miles &
+                 input$starbucks_in_one_mile[1] <= data$starbucks_in_one_mile & input$starbucks_in_one_mile[2] >= data$starbucks_in_one_mile &
+                 input$starbucks_in_five_miles[1] <= data$starbucks_in_five_miles & input$starbucks_in_five_miles[2] >= data$starbucks_in_five_miles,]
      }
      us.leaflet<-leafletProxy("map") %>% addProviderTiles("CartoDB.Positron")  %>% clearMarkers() %>%
        addMarkers(lng=x$civis_longitude, lat = x$civis_latitude, icon = dunkinIcon,
-                  popup = paste(sep = "<br/>",
-                                paste0("<b>Address: ",x$address,"</b>"),
-                                paste0(input$Variable1, ": ",round(x[ , names(x) %in% input$Variable1]*100)),
-                                paste0(input$Variable2, ": ",round(x[ , names(x) %in% input$Variable2]*100)),
-                                paste0(input$Variable3, ": ",round(x[ , names(x) %in% input$Variable3]*100)))) %>%
+                  popup = eval(parse(text = popup.code))
+                   )%>%
        addMarkers(lng=starbucks.stores$civis_longitude, lat = starbucks.stores$civis_latitude, icon = starbucksIcon)  %>%
        addMarkers(lng=mcdonalds.stores$civis_longitude, lat = mcdonalds.stores$civis_latitude, icon = mcdonaldsIcon)
      print(us.leaflet)
      
    })
    
-   observeEvent(input$Variable2,{
+   observeEvent(input$mcdonalds_in_one_mile,{
+     popup.code<- "paste(sep = '<br/>', paste0('<b>Address: ', x$address, '</b>')"
+     if (length(input$variables)>0){
+       for (i in 1:length(input$variables)){
+         
+         var.code<-paste0("x$", input$variables[i])
+         popup.code<-paste0(popup.code, ",paste0('",input$variables[i], ": ', ", var.code, ")")
+       }
+     }
+     popup.code<- paste0(popup.code, ")")
+     
      if (input$cluster == "All"){
-       x <- data
+       x <- data[input$mcdonalds_in_one_mile[1] <= data$mcdonalds_in_one_mile & input$mcdonalds_in_one_mile[2] >= data$mcdonalds_in_one_mile &
+                   input$mcdonalds_in_five_miles[1] <= data$mcdonalds_in_five_miles & input$mcdonalds_in_five_miles[2] >= data$mcdonalds_in_five_miles &
+                   input$starbucks_in_one_mile[1] <= data$starbucks_in_one_mile & input$starbucks_in_one_mile[2] >= data$starbucks_in_one_mile &
+                   input$starbucks_in_five_miles[1] <= data$starbucks_in_five_miles & input$starbucks_in_five_miles[2] >= data$starbucks_in_five_miles, ]
      } else{
        #hold <- reactive(data[which(data$cluster %in% input$cluster),])
        #x <- hold()
-       x<-data[which(data$clustername %in% input$cluster),]
+       x<-data[data$clustername == input$cluster & input$mcdonalds_in_one_mile[1] <= data$mcdonalds_in_one_mile & input$mcdonalds_in_one_mile[2] >= data$mcdonalds_in_one_mile &
+                 input$mcdonalds_in_five_miles[1] <= data$mcdonalds_in_five_miles & input$mcdonalds_in_five_miles[2] >= data$mcdonalds_in_five_miles &
+                 input$starbucks_in_one_mile[1] <= data$starbucks_in_one_mile & input$starbucks_in_one_mile[2] >= data$starbucks_in_one_mile &
+                 input$starbucks_in_five_miles[1] <= data$starbucks_in_five_miles & input$starbucks_in_five_miles[2] >= data$starbucks_in_five_miles,]
      }
      us.leaflet<-leafletProxy("map") %>% addProviderTiles("CartoDB.Positron")  %>% clearMarkers() %>%
        addMarkers(lng=x$civis_longitude, lat = x$civis_latitude, icon = dunkinIcon,
-                  popup = paste(sep = "<br/>",
-                                paste0("<b>Address: ",x$address,"</b>"),
-                                paste0(input$Variable1, ": ",round(x[ , names(x) %in% input$Variable1]*100)),
-                                paste0(input$Variable2, ": ",round(x[ , names(x) %in% input$Variable2]*100)),
-                                paste0(input$Variable3, ": ",round(x[ , names(x) %in% input$Variable3]*100)))) %>%
+                  popup = eval(parse(text = popup.code))
+       )%>%
        addMarkers(lng=starbucks.stores$civis_longitude, lat = starbucks.stores$civis_latitude, icon = starbucksIcon)  %>%
        addMarkers(lng=mcdonalds.stores$civis_longitude, lat = mcdonalds.stores$civis_latitude, icon = mcdonaldsIcon)
      print(us.leaflet)
      
-   })
+   })   
    
-   observeEvent(input$Variable3,{
+   observeEvent(input$mcdonalds_in_five_miles,{
+     popup.code<- "paste(sep = '<br/>', paste0('<b>Address: ', x$address, '</b>')"
+     if (length(input$variables)>0){
+       for (i in 1:length(input$variables)){
+         
+         var.code<-paste0("x$", input$variables[i])
+         popup.code<-paste0(popup.code, ",paste0('",input$variables[i], ": ', ", var.code, ")")
+       }
+     }
+     popup.code<- paste0(popup.code, ")")
+     
      if (input$cluster == "All"){
-       x <- data
+       x <- data[input$mcdonalds_in_one_mile[1] <= data$mcdonalds_in_one_mile & input$mcdonalds_in_one_mile[2] >= data$mcdonalds_in_one_mile &
+                   input$mcdonalds_in_five_miles[1] <= data$mcdonalds_in_five_miles & input$mcdonalds_in_five_miles[2] >= data$mcdonalds_in_five_miles &
+                   input$starbucks_in_one_mile[1] <= data$starbucks_in_one_mile & input$starbucks_in_one_mile[2] >= data$starbucks_in_one_mile &
+                   input$starbucks_in_five_miles[1] <= data$starbucks_in_five_miles & input$starbucks_in_five_miles[2] >= data$starbucks_in_five_miles, ]
      } else{
        #hold <- reactive(data[which(data$cluster %in% input$cluster),])
        #x <- hold()
-       x<-data[which(data$clustername %in% input$cluster),]
+       x<-data[data$clustername == input$cluster & input$mcdonalds_in_one_mile[1] <= data$mcdonalds_in_one_mile & input$mcdonalds_in_one_mile[2] >= data$mcdonalds_in_one_mile &
+                 input$mcdonalds_in_five_miles[1] <= data$mcdonalds_in_five_miles & input$mcdonalds_in_five_miles[2] >= data$mcdonalds_in_five_miles &
+                 input$starbucks_in_one_mile[1] <= data$starbucks_in_one_mile & input$starbucks_in_one_mile[2] >= data$starbucks_in_one_mile &
+                 input$starbucks_in_five_miles[1] <= data$starbucks_in_five_miles & input$starbucks_in_five_miles[2] >= data$starbucks_in_five_miles,]
      }
      us.leaflet<-leafletProxy("map") %>% addProviderTiles("CartoDB.Positron")  %>% clearMarkers() %>%
        addMarkers(lng=x$civis_longitude, lat = x$civis_latitude, icon = dunkinIcon,
-                  popup = paste(sep = "<br/>",
-                                paste0("<b>Address: ",x$address,"</b>"),
-                                paste0(input$Variable1, ": ",round(x[ , names(x) %in% input$Variable1]*100)),
-                                paste0(input$Variable2, ": ",round(x[ , names(x) %in% input$Variable2]*100)),
-                                paste0(input$Variable3, ": ",round(x[ , names(x) %in% input$Variable3]*100)))) %>%
+                  popup = eval(parse(text = popup.code))
+       )%>%
        addMarkers(lng=starbucks.stores$civis_longitude, lat = starbucks.stores$civis_latitude, icon = starbucksIcon)  %>%
        addMarkers(lng=mcdonalds.stores$civis_longitude, lat = mcdonalds.stores$civis_latitude, icon = mcdonaldsIcon)
      print(us.leaflet)
      
-   })
+   }) 
    
-   output$text<- renderText({
-     paste("You selected:", input$cluster)
+   observeEvent(input$starbucks_in_one_mile,{
+     popup.code<- "paste(sep = '<br/>', paste0('<b>Address: ', x$address, '</b>')"
+     if (length(input$variables)>0){
+       for (i in 1:length(input$variables)){
+         
+         var.code<-paste0("x$", input$variables[i])
+         popup.code<-paste0(popup.code, ",paste0('",input$variables[i], ": ', ", var.code, ")")
+       }
+     }
+     popup.code<- paste0(popup.code, ")")
+     
+     if (input$cluster == "All"){
+       x <- data[input$mcdonalds_in_one_mile[1] <= data$mcdonalds_in_one_mile & input$mcdonalds_in_one_mile[2] >= data$mcdonalds_in_one_mile &
+                   input$mcdonalds_in_five_miles[1] <= data$mcdonalds_in_five_miles & input$mcdonalds_in_five_miles[2] >= data$mcdonalds_in_five_miles &
+                   input$starbucks_in_one_mile[1] <= data$starbucks_in_one_mile & input$starbucks_in_one_mile[2] >= data$starbucks_in_one_mile &
+                   input$starbucks_in_five_miles[1] <= data$starbucks_in_five_miles & input$starbucks_in_five_miles[2] >= data$starbucks_in_five_miles, ]
+     } else{
+       #hold <- reactive(data[which(data$cluster %in% input$cluster),])
+       #x <- hold()
+       x<-data[data$clustername == input$cluster & input$mcdonalds_in_one_mile[1] <= data$mcdonalds_in_one_mile & input$mcdonalds_in_one_mile[2] >= data$mcdonalds_in_one_mile &
+                 input$mcdonalds_in_five_miles[1] <= data$mcdonalds_in_five_miles & input$mcdonalds_in_five_miles[2] >= data$mcdonalds_in_five_miles &
+                 input$starbucks_in_one_mile[1] <= data$starbucks_in_one_mile & input$starbucks_in_one_mile[2] >= data$starbucks_in_one_mile &
+                 input$starbucks_in_five_miles[1] <= data$starbucks_in_five_miles & input$starbucks_in_five_miles[2] >= data$starbucks_in_five_miles,]
+     }
+     us.leaflet<-leafletProxy("map") %>% addProviderTiles("CartoDB.Positron")  %>% clearMarkers() %>%
+       addMarkers(lng=x$civis_longitude, lat = x$civis_latitude, icon = dunkinIcon,
+                  popup = eval(parse(text = popup.code))
+       )%>%
+       addMarkers(lng=starbucks.stores$civis_longitude, lat = starbucks.stores$civis_latitude, icon = starbucksIcon)  %>%
+       addMarkers(lng=mcdonalds.stores$civis_longitude, lat = mcdonalds.stores$civis_latitude, icon = mcdonaldsIcon)
+     print(us.leaflet)
+     
+   }) 
+   
+   observeEvent(input$starbucks_in_five_miles,{
+     popup.code<- "paste(sep = '<br/>', paste0('<b>Address: ', x$address, '</b>')"
+     if (length(input$variables)>0){
+       for (i in 1:length(input$variables)){
+         
+         var.code<-paste0("x$", input$variables[i])
+         popup.code<-paste0(popup.code, ",paste0('",input$variables[i], ": ', ", var.code, ")")
+       }
+     }
+     popup.code<- paste0(popup.code, ")")
+     
+     if (input$cluster == "All"){
+       x <- data[input$mcdonalds_in_one_mile[1] <= data$mcdonalds_in_one_mile & input$mcdonalds_in_one_mile[2] >= data$mcdonalds_in_one_mile &
+                   input$mcdonalds_in_five_miles[1] <= data$mcdonalds_in_five_miles & input$mcdonalds_in_five_miles[2] >= data$mcdonalds_in_five_miles &
+                   input$starbucks_in_one_mile[1] <= data$starbucks_in_one_mile & input$starbucks_in_one_mile[2] >= data$starbucks_in_one_mile &
+                   input$starbucks_in_five_miles[1] <= data$starbucks_in_five_miles & input$starbucks_in_five_miles[2] >= data$starbucks_in_five_miles, ]
+     } else{
+       #hold <- reactive(data[which(data$cluster %in% input$cluster),])
+       #x <- hold()
+       x<-data[data$clustername == input$cluster & input$mcdonalds_in_one_mile[1] <= data$mcdonalds_in_one_mile & input$mcdonalds_in_one_mile[2] >= data$mcdonalds_in_one_mile &
+                 input$mcdonalds_in_five_miles[1] <= data$mcdonalds_in_five_miles & input$mcdonalds_in_five_miles[2] >= data$mcdonalds_in_five_miles &
+                 input$starbucks_in_one_mile[1] <= data$starbucks_in_one_mile & input$starbucks_in_one_mile[2] >= data$starbucks_in_one_mile &
+                 input$starbucks_in_five_miles[1] <= data$starbucks_in_five_miles & input$starbucks_in_five_miles[2] >= data$starbucks_in_five_miles,]
+     }
+     us.leaflet<-leafletProxy("map") %>% addProviderTiles("CartoDB.Positron")  %>% clearMarkers() %>%
+       addMarkers(lng=x$civis_longitude, lat = x$civis_latitude, icon = dunkinIcon,
+                  popup = eval(parse(text = popup.code))
+       )%>%
+       addMarkers(lng=starbucks.stores$civis_longitude, lat = starbucks.stores$civis_latitude, icon = starbucksIcon)  %>%
+       addMarkers(lng=mcdonalds.stores$civis_longitude, lat = mcdonalds.stores$civis_latitude, icon = mcdonaldsIcon)
+     print(us.leaflet)
+     
+   }) 
+   output$dunkinPlot <- renderPlot({
+     # generate bins based on input$bins from ui.R
+     #x    <- data[data$clustername == input$cluster, ] 
+     colors <- c('red','orange','green3','deepskyblue','blue','darkorchid4','violet','pink1','tan3','black')
+     
+     if (input$cluster == "All"){
+       x <- data
+       colour <- factor(x$clustername)
+     } else{
+       #hold <- reactive(data[which(data$cluster %in% input$cluster),])
+       #x <- hold()
+       x<-data[which(data$clustername %in% input$cluster),]
+       index<- match(input$cluster, cluster.list)
+       colors<- colors[index]
+     }
+     
+     #bins <- seq(min(x), max(x), length.out = input$bins + 1)
+     x.min <- 0
+     x.max <- max(data$total_count)
+     y.min <- min(data$avg_last_6_months_dunkin_donuts_index)
+     y.max <- max(data$avg_last_6_months_dunkin_donuts_index)
+     
+     # draw the histogram with the specified number of bins
+     cluster_graph <- ggplot(x, aes(x = total_count, y = avg_last_6_months_dunkin_donuts_index)) + xlim(x.min, x.max) + ylim(y.min, y.max)
+     cluster_graph <- cluster_graph + geom_point(aes(colour = factor(x$clustername)))
+     
+     cluster_graph <- cluster_graph + scale_colour_manual(name = "Cluster Group", values=colors)
+     cluster_graph <- cluster_graph + xlab("Number of People in Census Tract")
+     cluster_graph <- cluster_graph + ylab("Index of Likelihood to Purchase Dunkin in Last 6 Months")
+     print(cluster_graph)
    })
 }
 
 # Run the application 
 shinyApp(ui = ui, server = server)
-
