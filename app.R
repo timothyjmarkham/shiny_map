@@ -6,6 +6,8 @@
 #
 #    http://shiny.rstudio.com/
 #
+
+install.packages('future')
 install.packages('leaflet')
 install.packages('tidyverse')
 install.packages('ggplot2')
@@ -147,7 +149,7 @@ server <- function(input, output, session) {
   
     
         
-     us.leaflet<-leaflet() %>% addProviderTiles("CartoDB.Positron") %>% setView(-98.35, 39.7,zoom = 4) %>%
+     us.leaflet%<-%leaflet() %>% addProviderTiles("CartoDB.Positron") %>% setView(-98.35, 39.7,zoom = 4) %>%
                 addMarkers(lng=starbucks.stores$civis_longitude, lat = starbucks.stores$civis_latitude, icon = starbucksIcon)  %>%
                 addMarkers(lng=mcdonalds.stores$civis_longitude, lat = mcdonalds.stores$civis_latitude, icon = mcdonaldsIcon)
    })
@@ -177,7 +179,7 @@ server <- function(input, output, session) {
                  input$starbucks_in_five_miles[1] <= data$starbucks_in_five_miles & input$starbucks_in_five_miles[2] >= data$starbucks_in_five_miles,]
      }
      
-     us.leaflet<-leafletProxy("map") %>% addProviderTiles("CartoDB.Positron")  %>% clearMarkers() %>%
+     us.leaflet%<%leafletProxy("map") %>% addProviderTiles("CartoDB.Positron")  %>% clearMarkers() %>%
        addMarkers(lng=x$civis_longitude, lat = x$civis_latitude, icon = dunkinIcon,
                   popup =      eval(parse(text = popup.code))
                   )%>%
@@ -210,7 +212,7 @@ server <- function(input, output, session) {
                  input$starbucks_in_one_mile[1] <= data$starbucks_in_one_mile & input$starbucks_in_one_mile[2] >= data$starbucks_in_one_mile &
                  input$starbucks_in_five_miles[1] <= data$starbucks_in_five_miles & input$starbucks_in_five_miles[2] >= data$starbucks_in_five_miles,]
      }
-     us.leaflet<-leafletProxy("map") %>% addProviderTiles("CartoDB.Positron")  %>% clearMarkers() %>%
+     us.leaflet%<-%leafletProxy("map") %>% addProviderTiles("CartoDB.Positron")  %>% clearMarkers() %>%
        addMarkers(lng=x$civis_longitude, lat = x$civis_latitude, icon = dunkinIcon,
                   popup = eval(parse(text = popup.code))
                    )%>%
@@ -244,7 +246,7 @@ server <- function(input, output, session) {
                  input$starbucks_in_one_mile[1] <= data$starbucks_in_one_mile & input$starbucks_in_one_mile[2] >= data$starbucks_in_one_mile &
                  input$starbucks_in_five_miles[1] <= data$starbucks_in_five_miles & input$starbucks_in_five_miles[2] >= data$starbucks_in_five_miles,]
      }
-     us.leaflet<-leafletProxy("map") %>% addProviderTiles("CartoDB.Positron")  %>% clearMarkers() %>%
+     us.leaflet%<-%leafletProxy("map") %>% addProviderTiles("CartoDB.Positron")  %>% clearMarkers() %>%
        addMarkers(lng=x$civis_longitude, lat = x$civis_latitude, icon = dunkinIcon,
                   popup = eval(parse(text = popup.code))
        )%>%
@@ -278,7 +280,7 @@ server <- function(input, output, session) {
                  input$starbucks_in_one_mile[1] <= data$starbucks_in_one_mile & input$starbucks_in_one_mile[2] >= data$starbucks_in_one_mile &
                  input$starbucks_in_five_miles[1] <= data$starbucks_in_five_miles & input$starbucks_in_five_miles[2] >= data$starbucks_in_five_miles,]
      }
-     us.leaflet<-leafletProxy("map") %>% addProviderTiles("CartoDB.Positron")  %>% clearMarkers() %>%
+     us.leaflet%<-%leafletProxy("map") %>% addProviderTiles("CartoDB.Positron")  %>% clearMarkers() %>%
        addMarkers(lng=x$civis_longitude, lat = x$civis_latitude, icon = dunkinIcon,
                   popup = eval(parse(text = popup.code))
        )%>%
@@ -312,7 +314,7 @@ server <- function(input, output, session) {
                  input$starbucks_in_one_mile[1] <= data$starbucks_in_one_mile & input$starbucks_in_one_mile[2] >= data$starbucks_in_one_mile &
                  input$starbucks_in_five_miles[1] <= data$starbucks_in_five_miles & input$starbucks_in_five_miles[2] >= data$starbucks_in_five_miles,]
      }
-     us.leaflet<-leafletProxy("map") %>% addProviderTiles("CartoDB.Positron")  %>% clearMarkers() %>%
+     us.leaflet%<-%leafletProxy("map") %>% addProviderTiles("CartoDB.Positron")  %>% clearMarkers() %>%
        addMarkers(lng=x$civis_longitude, lat = x$civis_latitude, icon = dunkinIcon,
                   popup = eval(parse(text = popup.code))
        )%>%
@@ -346,7 +348,7 @@ server <- function(input, output, session) {
                  input$starbucks_in_one_mile[1] <= data$starbucks_in_one_mile & input$starbucks_in_one_mile[2] >= data$starbucks_in_one_mile &
                  input$starbucks_in_five_miles[1] <= data$starbucks_in_five_miles & input$starbucks_in_five_miles[2] >= data$starbucks_in_five_miles,]
      }
-     us.leaflet<-leafletProxy("map") %>% addProviderTiles("CartoDB.Positron")  %>% clearMarkers() %>%
+     us.leaflet%<-%leafletProxy("map") %>% addProviderTiles("CartoDB.Positron")  %>% clearMarkers() %>%
        addMarkers(lng=x$civis_longitude, lat = x$civis_latitude, icon = dunkinIcon,
                   popup = eval(parse(text = popup.code))
        )%>%
