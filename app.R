@@ -55,6 +55,8 @@ library(tigris)
 library(tidyverse)
 library(ggplot2)
 
+plan(multisession)
+
 # Pull in Dunkin Data
 cluster.data<-read_civis("dunkin.dunkin_store_clusters")
 index.data<-read_civis("dunkin.dunkin_stores_indexed")
