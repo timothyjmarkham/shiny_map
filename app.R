@@ -386,6 +386,8 @@ server <- function(input, output) {
      cluster_graph <- cluster_graph + ylab("Index of Likelihood to Purchase Dunkin in Last 6 Months")
      print(cluster_graph)
    })
+  
+  session$allowReconnect("force")
 }
 
 # Run the application 
