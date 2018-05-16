@@ -48,6 +48,7 @@ check.vars<-c("avg_coalesced_commercial_age"
               ,"total_count_index")
               
 library(shiny)
+library(future)
 library(civis)
 library(leaflet)
 library(tigris)
