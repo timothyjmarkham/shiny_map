@@ -139,7 +139,7 @@ ui <- fluidPage(
 )
 
 # Define server logic required to draw a histogram
-server <- function(input, output) {
+server <- function(input, output, session) {
   
    output$map <- renderLeaflet({
       # generate bins based on input$bins from ui.R
