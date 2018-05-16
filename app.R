@@ -152,7 +152,7 @@ server <- function(input, output, session) {
         
      us.leaflet%<-%leaflet() %>% addProviderTiles("CartoDB.Positron") %>% setView(-98.35, 39.7,zoom = 4) %>%
                 addMarkers(lng=starbucks.stores$civis_longitude, lat = starbucks.stores$civis_latitude, icon = starbucksIcon)  %>%
-                addMarkers(lng=mcdonalds.stores$civis_longitude, lat = mcdonalds.stores$civis_latitude, icon = mcdonaldsIcon)
+                addMarkers(lng=mcdonalds.stores$civis_longitude, lat = mcdonalds.stores$civis_latitude, icon = mcdonaldsIcon) %packages% "leaflet"
    })
    
    observeEvent(input$cluster,{
@@ -185,7 +185,7 @@ server <- function(input, output, session) {
                   popup =      eval(parse(text = popup.code))
                   )%>%
        addMarkers(lng=starbucks.stores$civis_longitude, lat = starbucks.stores$civis_latitude, icon = starbucksIcon)  %>%
-       addMarkers(lng=mcdonalds.stores$civis_longitude, lat = mcdonalds.stores$civis_latitude, icon = mcdonaldsIcon)
+       addMarkers(lng=mcdonalds.stores$civis_longitude, lat = mcdonalds.stores$civis_latitude, icon = mcdonaldsIcon) %packages% "leaflet"
      print(us.leaflet)
      
    })
@@ -218,7 +218,7 @@ server <- function(input, output, session) {
                   popup = eval(parse(text = popup.code))
                    )%>%
        addMarkers(lng=starbucks.stores$civis_longitude, lat = starbucks.stores$civis_latitude, icon = starbucksIcon)  %>%
-       addMarkers(lng=mcdonalds.stores$civis_longitude, lat = mcdonalds.stores$civis_latitude, icon = mcdonaldsIcon)
+       addMarkers(lng=mcdonalds.stores$civis_longitude, lat = mcdonalds.stores$civis_latitude, icon = mcdonaldsIcon) %packages% "leaflet"
      print(us.leaflet)
      
    })
@@ -252,7 +252,7 @@ server <- function(input, output, session) {
                   popup = eval(parse(text = popup.code))
        )%>%
        addMarkers(lng=starbucks.stores$civis_longitude, lat = starbucks.stores$civis_latitude, icon = starbucksIcon)  %>%
-       addMarkers(lng=mcdonalds.stores$civis_longitude, lat = mcdonalds.stores$civis_latitude, icon = mcdonaldsIcon)
+       addMarkers(lng=mcdonalds.stores$civis_longitude, lat = mcdonalds.stores$civis_latitude, icon = mcdonaldsIcon) %packages% "leaflet"
      print(us.leaflet)
      
    })   
@@ -286,7 +286,7 @@ server <- function(input, output, session) {
                   popup = eval(parse(text = popup.code))
        )%>%
        addMarkers(lng=starbucks.stores$civis_longitude, lat = starbucks.stores$civis_latitude, icon = starbucksIcon)  %>%
-       addMarkers(lng=mcdonalds.stores$civis_longitude, lat = mcdonalds.stores$civis_latitude, icon = mcdonaldsIcon)
+       addMarkers(lng=mcdonalds.stores$civis_longitude, lat = mcdonalds.stores$civis_latitude, icon = mcdonaldsIcon) %packages% "leaflet"
      print(us.leaflet)
      
    }) 
@@ -320,7 +320,7 @@ server <- function(input, output, session) {
                   popup = eval(parse(text = popup.code))
        )%>%
        addMarkers(lng=starbucks.stores$civis_longitude, lat = starbucks.stores$civis_latitude, icon = starbucksIcon)  %>%
-       addMarkers(lng=mcdonalds.stores$civis_longitude, lat = mcdonalds.stores$civis_latitude, icon = mcdonaldsIcon)
+       addMarkers(lng=mcdonalds.stores$civis_longitude, lat = mcdonalds.stores$civis_latitude, icon = mcdonaldsIcon) %packages% "leaflet"
      print(us.leaflet)
      
    }) 
@@ -354,7 +354,7 @@ server <- function(input, output, session) {
                   popup = eval(parse(text = popup.code))
        )%>%
        addMarkers(lng=starbucks.stores$civis_longitude, lat = starbucks.stores$civis_latitude, icon = starbucksIcon)  %>%
-       addMarkers(lng=mcdonalds.stores$civis_longitude, lat = mcdonalds.stores$civis_latitude, icon = mcdonaldsIcon)
+       addMarkers(lng=mcdonalds.stores$civis_longitude, lat = mcdonalds.stores$civis_latitude, icon = mcdonaldsIcon) %packages% "leaflet"
      print(us.leaflet)
      
    }) 
