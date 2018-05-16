@@ -158,39 +158,6 @@ server <- function(input, output, session) {
      print(us.leaflet)
    })
    
-
-   output$dunkinPlot <- renderPlot({
-     # generate bins based on input$bins from ui.R
-     #x    <- data[data$clustername == input$cluster, ] 
-     colors <- c('red','orange','green3','deepskyblue','blue','darkorchid4','violet','pink1','tan3','black')
-     
-     if (input$cluster == "All"){
-       x <- data
-       colour <- factor(x$clustername)
-     } else{
-       #hold <- reactive(data[which(data$cluster %in% input$cluster),])
-       #x <- hold()
-       x<-data[which(data$clustername %in% input$cluster),]
-       index<- match(input$cluster, cluster.list)
-       colors<- colors[index]
-     }
-     
-     #bins <- seq(min(x), max(x), length.out = input$bins + 1)
-     x.min <- 0
-     x.max <- max(data$total_count)
-     y.min <- min(data$avg_last_6_months_dunkin_donuts_index)
-     y.max <- max(data$avg_last_6_months_dunkin_donuts_index)
-     
-     # draw the histogram with the specified number of bins
-     cluster_graph <- ggplot(x, aes(x = total_count, y = avg_last_6_months_dunkin_donuts_index)) + xlim(x.min, x.max) + ylim(y.min, y.max)
-     cluster_graph <- cluster_graph + geom_point(aes(colour = factor(x$clustername)))
-     
-     cluster_graph <- cluster_graph + scale_colour_manual(name = "Cluster Group", values=colors)
-     cluster_graph <- cluster_graph + xlab("Number of People in Census Tract")
-     cluster_graph <- cluster_graph + ylab("Index of Likelihood to Purchase Dunkin in Last 6 Months")
-     print(cluster_graph)
-   })
-  
   session$allowReconnect("force")
 }
 
